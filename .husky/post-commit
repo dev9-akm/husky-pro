@@ -1,0 +1,99 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Cross-platform TTY check
+if [ -e "/dev/tty" ]; then
+  TTY_OUTPUT="/dev/tty"
+else
+  TTY_OUTPUT="/dev/stdout"
+fi
+
+# Display commit information in Git's original format
+commit_hash=$(git rev-parse --short HEAD)
+commit_message=$(git log -1 --pretty=format:"%s")
+branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+
+# Show Git-style commit output to TTY
+echo "[$branch $commit_hash] $commit_message" > "$TTY_OUTPUT"
+git show --stat --format="" HEAD > "$TTY_OUTPUT"
+
+echo "" > "$TTY_OUTPUT"
+echo "✓ Commit complete" > "$TTY_OUTPUT"
+
+# Protected branch check
+is_protected_branch() {
+  protected_branches=${PROTECTED_BRANCHES:-"main master"}
+  for protected_branch in $protected_branches; do
+    if [ "$branch" = "$protected_branch" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+# Push logic
+attempt_push_prompt() {
+  printf "▶ Do you want to push to '$branch' immediately after this commit? (Y/n): " > "$TTY_OUTPUT"
+  read -r response < "$TTY_OUTPUT"
+  if [ "$response" != "n" ] && [ "$response" != "N" ]; then
+    echo "↑ Pushing to remote repository ($branch)..." > "$TTY_OUTPUT"
+    git push
+    echo "" > "$TTY_OUTPUT"
+    echo "✓ Push complete" > "$TTY_OUTPUT"
+  else
+    echo "⏭ Skipped push. You can push manually later." > "$TTY_OUTPUT"
+  fi
+}
+
+# Interactive shell
+if [ -t 0 ]; then
+  if is_protected_branch; then
+    echo "! Auto-push skipped on protected branch: $branch" > "$TTY_OUTPUT"
+  else
+    attempt_push_prompt
+  fi
+else
+  echo "• Non-interactive shell detected" > "$TTY_OUTPUT"
+  if [ -e "/dev/tty" ] && ! is_protected_branch; then
+    printf "▶ Do you want to push to '$branch' immediately after this commit? (Y/n): " > "$TTY_OUTPUT"
+    read -r response < "$TTY_OUTPUT"
+    if [ "$response" != "n" ] && [ "$response" != "N" ]; then
+      echo "↑ Pushing to remote repository ($branch)..." > "$TTY_OUTPUT"
+      git push
+      echo "" > "$TTY_OUTPUT"
+      echo "✓ Push complete" > "$TTY_OUTPUT"
+    else
+      echo "⏭ Skipped push. You can push manually later." > "$TTY_OUTPUT"
+    fi
+  else
+    if is_protected_branch; then
+      echo "! Auto-push skipped on protected branch: $branch" > "$TTY_OUTPUT"
+    elif [ "$GIT_AUTO_PUSH" = "1" ]; then
+      echo "↑ Auto-pushing to remote repository ($branch) based on GIT_AUTO_PUSH environment variable..." > "$TTY_OUTPUT"
+      git push
+      echo "" > "$TTY_OUTPUT"
+      echo "✓ Push complete" > "$TTY_OUTPUT"
+    elif [ -n "$GIT_AUTO_PUSH" ]; then
+      echo "! Invalid value for GIT_AUTO_PUSH. Only '1' is allowed to enable auto-push." > "$TTY_OUTPUT"
+    elif [ -e "/dev/tty" ]; then
+      printf "▶ Do you want to push to '$branch' immediately after this commit? (Y/n): " > "$TTY_OUTPUT"
+      read -r response < "$TTY_OUTPUT"
+      if [ "$response" != "n" ] && [ "$response" != "N" ]; then
+        echo "↑ Pushing to remote repository ($branch)..." > "$TTY_OUTPUT"
+        git push
+        echo "" > "$TTY_OUTPUT"
+        echo "✓ Push complete" > "$TTY_OUTPUT"
+      else
+        echo "⏭ Skipped push. You can push manually later." > "$TTY_OUTPUT"
+      fi
+    else
+      echo "! Non-interactive shell without /dev/tty detected. Skipping push prompt." > "$TTY_OUTPUT"
+    fi
+  fi
+fi
+
+# Post-commit process
+echo "" > "$TTY_OUTPUT"
+echo "✓ Post-commit process completed" > "$TTY_OUTPUT"
+echo "────────────────────────────────────────" > "$TTY_OUTPUT"
+exit 0
