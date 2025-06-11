@@ -5,6 +5,7 @@ else
   TTY_OUTPUT="/dev/stdout"
 fi
 
+echo "" > "$TTY_OUTPUT"
 # Display commit information in Git's original format
 commit_hash=$(git rev-parse --short HEAD)
 commit_message=$(git log -1 --pretty=format:"%s")
@@ -34,8 +35,10 @@ perform_push() {
   # Check if branch has upstream
   if ! git rev-parse --abbrev-ref "$branch@{upstream}" > /dev/null 2>&1; then
     echo "• Branch '$branch' has no upstream. Setting upstream to origin/$branch..." > "$TTY_OUTPUT"
+    echo "" > "$TTY_OUTPUT"
     git push --set-upstream origin "$branch"
   else
+  echo "" > "$TTY_OUTPUT"
     git push
   fi
 
@@ -65,7 +68,8 @@ attempt_push_prompt() {
 # Interactive shell
 if [ -t 0 ]; then
   if is_protected_branch; then
-    echo "! Auto-push skipped on protected branch: $branch" > "$TTY_OUTPUT"
+    echo "" > "$TTY_OUTPUT"
+    echo "! Warning: Auto-push skipped on protected branch: $branch" > "$TTY_OUTPUT"
   else
     attempt_push_prompt
   fi
@@ -90,9 +94,10 @@ else
       echo "↑ Auto-pushing to remote repository ($branch) based on GIT_AUTO_PUSH environment variable..." > "$TTY_OUTPUT"
       perform_push
     elif [ -n "$GIT_AUTO_PUSH" ]; then
+    echo "" > "$TTY_OUTPUT"
       echo "! Invalid value for GIT_AUTO_PUSH. Only '1' is allowed to enable auto-push." > "$TTY_OUTPUT"
     elif is_protected_branch; then
-      echo "! Auto-push skipped on protected branch: $branch" > "$TTY_OUTPUT"
+      echo "! Warning: Auto-push skipped on protected branch: $branch" > "$TTY_OUTPUT"
     elif [ -e "/dev/tty" ]; then
       echo "" > "$TTY_OUTPUT"
       printf "▶ Do you want to push to '$branch' immediately after this commit? (Y/n): " > "$TTY_OUTPUT"
@@ -101,23 +106,21 @@ else
         echo "↑ Pushing to remote repository ($branch)..." > "$TTY_OUTPUT"
         perform_push
       else
+        echo "" > "$TTY_OUTPUT"
         echo "⏭ Skipped push. You can push manually later." > "$TTY_OUTPUT"
       fi
     else
+      # Non-interactive shell without /dev/tty
+      echo "" > "$TTY_OUTPUT"
       echo "! Non-interactive shell without /dev/tty detected. Skipping push prompt." > "$TTY_OUTPUT"
     fi
   fi
 fi
 
 # Final summary
-echo "" > "$TTY_OUTPUT"
-echo "════════════════════════════════════════" > "$TTY_OUTPUT"
-echo "📋 COMMIT SUMMARY" > "$TTY_OUTPUT"
 echo "────────────────────────────────────────" > "$TTY_OUTPUT"
-echo "Branch: $branch" > "$TTY_OUTPUT"
-echo "Commit: $commit_hash" > "$TTY_OUTPUT"
-echo "Message: $commit_message" > "$TTY_OUTPUT"
-echo "════════════════════════════════════════" > "$TTY_OUTPUT"
+echo "" > "$TTY_OUTPUT"
+echo "▶ SUMMARY:" > "$TTY_OUTPUT"
 
 # Exit with success
 exit 0
