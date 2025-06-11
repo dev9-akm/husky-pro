@@ -7,17 +7,6 @@ fi
 echo "────────────────────────────────────────" > "$TTY_OUTPUT"
 echo "▶ Pre-commit validation started..." > "$TTY_OUTPUT"
 
-# Check for untracked files and auto-add them
-untracked_files=$(git ls-files --others --exclude-standard)
-if [ -n "$untracked_files" ]; then
-  echo "• Found untracked files. Adding them automatically..." > "$TTY_OUTPUT"
-  echo "$untracked_files" | while IFS= read -r file; do
-    echo "  + $file" > "$TTY_OUTPUT"
-  done
-  git add .
-  echo "✓ Untracked files added" > "$TTY_OUTPUT"
-fi
-
 # Run lint-staged
 if ! command -v npx > /dev/null || ! npx --no-install lint-staged --version > /dev/null 2>&1; then
   echo "✗ 'lint-staged' is not installed or not configured. Please install and configure it before committing." > "$TTY_OUTPUT"

@@ -109,6 +109,15 @@ else
   fi
 fi
 
-# Exit with success
+# Final summary
+echo "" > "$TTY_OUTPUT"
+echo "════════════════════════════════════════" > "$TTY_OUTPUT"
+echo "📋 COMMIT SUMMARY" > "$TTY_OUTPUT"
 echo "────────────────────────────────────────" > "$TTY_OUTPUT"
+echo "Branch: $branch" > "$TTY_OUTPUT"
+echo "Commit: $commit_hash" > "$TTY_OUTPUT"
+echo "Message: $commit_message" > "$TTY_OUTPUT"
+echo "════════════════════════════════════════" > "$TTY_OUTPUT"
+
+# Exit with success
 exit 0
