@@ -16,6 +16,7 @@ git show --stat --format="" HEAD > "$TTY_OUTPUT"
 
 echo "" > "$TTY_OUTPUT"
 echo "✓ Commit complete" > "$TTY_OUTPUT"
+echo "────────────────────────────────────────" > "$TTY_OUTPUT"
 
 # Protected branch check
 is_protected_branch() {
@@ -30,6 +31,7 @@ is_protected_branch() {
 
 # Push logic
 attempt_push_prompt() {
+  echo "" > "$TTY_OUTPUT"
   printf "▶ Do you want to push to '$branch' immediately after this commit? (Y/n): " > "$TTY_OUTPUT"
   read -r response < "$TTY_OUTPUT"
   if [ "$response" != "n" ] && [ "$response" != "N" ]; then
@@ -52,6 +54,7 @@ if [ -t 0 ]; then
 else
   echo "• Non-interactive shell detected" > "$TTY_OUTPUT"
   if [ -e "/dev/tty" ] && ! is_protected_branch; then
+    echo "" > "$TTY_OUTPUT"
     printf "▶ Do you want to push to '$branch' immediately after this commit? (Y/n): " > "$TTY_OUTPUT"
     read -r response < "$TTY_OUTPUT"
     if [ "$response" != "n" ] && [ "$response" != "N" ]; then
@@ -73,6 +76,7 @@ else
     elif [ -n "$GIT_AUTO_PUSH" ]; then
       echo "! Invalid value for GIT_AUTO_PUSH. Only '1' is allowed to enable auto-push." > "$TTY_OUTPUT"
     elif [ -e "/dev/tty" ]; then
+      echo "" > "$TTY_OUTPUT"
       printf "▶ Do you want to push to '$branch' immediately after this commit? (Y/n): " > "$TTY_OUTPUT"
       read -r response < "$TTY_OUTPUT"
       if [ "$response" != "n" ] && [ "$response" != "N" ]; then

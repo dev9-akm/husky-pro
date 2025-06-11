@@ -4,8 +4,8 @@ if [ -e "/dev/tty" ]; then
 else
   TTY_OUTPUT="/dev/stdout"
 fi
-
-echo "▶ Pre-commit validation started" > "$TTY_OUTPUT"
+echo "────────────────────────────────────────" > "$TTY_OUTPUT"
+echo "▶ Pre-commit validation started..." > "$TTY_OUTPUT"
 
 # Run lint-staged
 if ! command -v npx > /dev/null || ! npx --no-install lint-staged --version > /dev/null 2>&1; then
