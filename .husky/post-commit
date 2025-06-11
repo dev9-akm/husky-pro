@@ -89,8 +89,6 @@ else
   fi
 fi
 
-# Post-commit process
-echo "" > "$TTY_OUTPUT"
-echo "✓ Post-commit process completed" > "$TTY_OUTPUT"
+# Exit with success
 echo "────────────────────────────────────────" > "$TTY_OUTPUT"
 exit 0
