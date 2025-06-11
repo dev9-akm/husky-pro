@@ -121,6 +121,6 @@ fi
 echo "────────────────────────────────────────" > "$TTY_OUTPUT"
 echo "" > "$TTY_OUTPUT"
 echo "▶ SUMMARY:" > "$TTY_OUTPUT"
-
+echo "" > "$TTY_OUTPUT"
 # Exit with success
 exit 0
