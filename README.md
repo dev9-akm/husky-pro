@@ -48,6 +48,22 @@ This is a complete Node.js application that demonstrates best practices using:
    npm run typecheck  # Check TypeScript types
    ```
 
+## ESLint Configuration
+
+This project uses ESLint v9 with the new flat config format (`eslint.config.js`) that supports both JavaScript and TypeScript files:
+
+- **JavaScript files** (`**/*.js`): Uses CommonJS module system with Node.js globals
+- **TypeScript files** (`**/*.ts`): Uses ES modules with TypeScript-specific rules
+- **Test files** (`tests/**/*.{js,ts}`): Additional Jest globals and relaxed console rules
+- **Ignored files**: `node_modules/`, `dist/`, `build/`, `coverage/`, `*.min.js`, `.env` files
+
+### Available Lint Commands:
+
+- `npm run lint` - Lint all JS and TS files with auto-fix
+- `npm run lint:js` - Lint only JavaScript files
+- `npm run lint:ts` - Lint only TypeScript files in src/
+- `npm run lint:check` - Check all files without auto-fix
+
 ## API Endpoints
 
 The application provides a math API with the following endpoints:

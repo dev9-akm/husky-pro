@@ -1,10 +1,24 @@
 const js = require('@eslint/js')
-const prettier = require('eslint-config-prettier')
 
 module.exports = [
-  js.configs.recommended,
-  prettier,
+  // Global ignores - must be first in the array
   {
+    ignores: [
+      'node_modules/',
+      'dist/',
+      'build/',
+      'coverage/',
+      '*.min.js',
+      '.env',
+      '.env.*',
+      '!.env.example',
+    ],
+  },
+
+  // Base configuration for JavaScript files
+  {
+    files: ['**/*.js'],
+    ...js.configs.recommended,
     languageOptions: {
       ecmaVersion: 2021,
       sourceType: 'commonjs',
@@ -31,8 +45,30 @@ module.exports = [
       'no-unused-vars': 'warn',
     },
   },
+
+  // TypeScript files configuration
   {
-    files: ['tests/**/*.js'],
+    files: ['**/*.ts'],
+    languageOptions: {
+      parser: require('@typescript-eslint/parser'),
+      parserOptions: {
+        ecmaVersion: 2021,
+        sourceType: 'module',
+      },
+    },
+    plugins: {
+      '@typescript-eslint': require('@typescript-eslint/eslint-plugin'),
+    },
+    rules: {
+      '@typescript-eslint/no-unused-vars': 'warn',
+      '@typescript-eslint/no-explicit-any': 'warn',
+      'no-console': 'warn',
+    },
+  },
+
+  // Test files configuration
+  {
+    files: ['tests/**/*.js', 'tests/**/*.ts'],
     languageOptions: {
       globals: {
         describe: 'readonly',
@@ -44,6 +80,9 @@ module.exports = [
         afterAll: 'readonly',
         jest: 'readonly',
       },
+    },
+    rules: {
+      'no-console': 'off',
     },
   },
 ]
