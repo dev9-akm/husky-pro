@@ -29,16 +29,34 @@ is_protected_branch() {
   return 1
 }
 
-# Push logic
+# Push helper function
+perform_push() {
+  # Check if branch has upstream
+  if ! git rev-parse --abbrev-ref "$branch@{upstream}" > /dev/null 2>&1; then
+    echo "• Branch '$branch' has no upstream. Setting upstream to origin/$branch..." > "$TTY_OUTPUT"
+    git push --set-upstream origin "$branch"
+  else
+    git push
+  fi
+
+  if [ $? -eq 0 ]; then
+    echo "" > "$TTY_OUTPUT"
+    echo "✓ Push complete" > "$TTY_OUTPUT"
+  else
+    echo "" > "$TTY_OUTPUT"
+    echo "✗ Push failed" > "$TTY_OUTPUT"
+    exit 1
+  fi
+}
+
+# Push logic with upstream handling
 attempt_push_prompt() {
   echo "" > "$TTY_OUTPUT"
   printf "▶ Do you want to push to '$branch' immediately after this commit? (Y/n): " > "$TTY_OUTPUT"
   read -r response < "$TTY_OUTPUT"
   if [ "$response" != "n" ] && [ "$response" != "N" ]; then
     echo "↑ Pushing to remote repository ($branch)..." > "$TTY_OUTPUT"
-    git push
-    echo "" > "$TTY_OUTPUT"
-    echo "✓ Push complete" > "$TTY_OUTPUT"
+    perform_push
   else
     echo "⏭ Skipped push. You can push manually later." > "$TTY_OUTPUT"
   fi
@@ -59,31 +77,29 @@ else
     read -r response < "$TTY_OUTPUT"
     if [ "$response" != "n" ] && [ "$response" != "N" ]; then
       echo "↑ Pushing to remote repository ($branch)..." > "$TTY_OUTPUT"
-      git push
-      echo "" > "$TTY_OUTPUT"
-      echo "✓ Push complete" > "$TTY_OUTPUT"
+      perform_push
     else
       echo "⏭ Skipped push. You can push manually later." > "$TTY_OUTPUT"
     fi
   else
-    if is_protected_branch; then
-      echo "! Auto-push skipped on protected branch: $branch" > "$TTY_OUTPUT"
-    elif [ "$GIT_AUTO_PUSH" = "1" ]; then
+    # Check for GIT_AUTO_PUSH first, regardless of protected branch status
+    if [ "$GIT_AUTO_PUSH" = "1" ]; then
+      if is_protected_branch; then
+        echo "! WARNING: Auto-pushing to protected branch '$branch' due to GIT_AUTO_PUSH=1" > "$TTY_OUTPUT"
+      fi
       echo "↑ Auto-pushing to remote repository ($branch) based on GIT_AUTO_PUSH environment variable..." > "$TTY_OUTPUT"
-      git push
-      echo "" > "$TTY_OUTPUT"
-      echo "✓ Push complete" > "$TTY_OUTPUT"
+      perform_push
     elif [ -n "$GIT_AUTO_PUSH" ]; then
       echo "! Invalid value for GIT_AUTO_PUSH. Only '1' is allowed to enable auto-push." > "$TTY_OUTPUT"
+    elif is_protected_branch; then
+      echo "! Auto-push skipped on protected branch: $branch" > "$TTY_OUTPUT"
     elif [ -e "/dev/tty" ]; then
       echo "" > "$TTY_OUTPUT"
       printf "▶ Do you want to push to '$branch' immediately after this commit? (Y/n): " > "$TTY_OUTPUT"
       read -r response < "$TTY_OUTPUT"
       if [ "$response" != "n" ] && [ "$response" != "N" ]; then
         echo "↑ Pushing to remote repository ($branch)..." > "$TTY_OUTPUT"
-        git push
-        echo "" > "$TTY_OUTPUT"
-        echo "✓ Push complete" > "$TTY_OUTPUT"
+        perform_push
       else
         echo "⏭ Skipped push. You can push manually later." > "$TTY_OUTPUT"
       fi
