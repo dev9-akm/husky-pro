@@ -1,3 +1,8 @@
+# This script is executed before a commit is made.
+if [ "$HUSKY" = "0" ]; then
+  exit 0
+fi
+
 # Cross-platform TTY check
 if [ -e "/dev/tty" ]; then
   TTY_OUTPUT="/dev/tty"
